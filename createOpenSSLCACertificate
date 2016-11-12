@@ -1,0 +1,62 @@
+##################### FIRST LINE
+# ---------------------------
+#!/bin/bash
+# ---------------------------
+#
+#
+# The Seedbox From Scratch Script
+#   By Notos ---> https://github.com/Notos/
+#
+#
+######################################################################
+#
+#  Copyright (c) 2013 Notos (https://github.com/Notos/)
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+#  --> Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+#
+######################################################################
+#
+
+CERTPASS1=`cat /etc/seedbox-from-scratch/certpass.info`
+IPADDRESS1=`cat /etc/seedbox-from-scratch/hostname.info`
+NEWUSER1=`cat /etc/seedbox-from-scratch/mainuser.info`
+RANDOM1=`cat /etc/seedbox-from-scratch/sslca.info`
+cd /etc/seedbox-from-scratch/
+rm -r /etc/seedbox-from-scratch/ssl/CA
+mkdir -p /etc/seedbox-from-scratch/ssl/CA/newcerts
+mkdir -p /etc/seedbox-from-scratch/ssl/CA/private
+cd /etc/seedbox-from-scratch/ssl/CA
+
+echo '01' > serial  && touch index.txt
+cp /etc/seedbox-from-scratch/root.ca.cacert.conf.template /etc/seedbox-from-scratch/ssl/CA/caconfig.cnf
+perl -pi -e "s/<username>/$RANDOM1/g" /etc/seedbox-from-scratch/ssl/CA/caconfig.cnf
+#perl -pi -e "s/<username>/$NEWUSER1/g" /etc/seedbox-from-scratch/ssl/CA/caconfig.cnf
+perl -pi -e "s/<servername>/$IPADDRESS1/g" /etc/seedbox-from-scratch/ssl/CA/caconfig.cnf
+
+openssl req -new -x509 -extensions v3_ca -keyout private/cakey.pem -passout pass:$CERTPASS1 -out cacert.pem -days 3650 -config /etc/seedbox-from-scratch/ssl/CA/caconfig.cnf
+openssl req -new -nodes -out /etc/seedbox-from-scratch/ssl/CA/req.pem -passout pass:$CERTPASS1 -config /etc/seedbox-from-scratch/ssl/CA/caconfig.cnf
+openssl ca -batch -out /etc/seedbox-from-scratch/ssl/CA/cert.pem -config /etc/seedbox-from-scratch/ssl/CA/caconfig.cnf -passin pass:$CERTPASS1 -infiles /etc/seedbox-from-scratch/ssl/CA/req.pem
+mv /etc/seedbox-from-scratch/ssl/CA/cert.pem /etc/seedbox-from-scratch/ssl/CA/tmp.pem
+openssl x509 -in /etc/seedbox-from-scratch/ssl/CA/tmp.pem -out /etc/seedbox-from-scratch/ssl/CA/cert.pem
+cat /etc/seedbox-from-scratch/ssl/CA/key.pem /etc/seedbox-from-scratch/ssl/CA/cert.pem > /etc/seedbox-from-scratch/ssl/CA/key-cert.pem
+
+cp /etc/seedbox-from-scratch/ssl/CA/cacert.pem /etc/seedbox-from-scratch/ssl
+cp /etc/seedbox-from-scratch/ssl/CA/cert.pem /etc/seedbox-from-scratch/ssl
+cp /etc/seedbox-from-scratch/ssl/CA/key-cert.pem /etc/seedbox-from-scratch/ssl
+cp /etc/seedbox-from-scratch/ssl/CA/key.pem /etc/seedbox-from-scratch/ssl
+cp /etc/seedbox-from-scratch/ssl/CA/private/cakey.pem /etc/seedbox-from-scratch/ssl
+cp /etc/seedbox-from-scratch/ssl/CA/req.pem /etc/seedbox-from-scratch/ssl
+
+bash /etc/seedbox-from-scratch/createOpenSSLServiceCertificate sabnzbd
+
+chmod 600 /etc/seedbox-from-scratch/ssl/*
+chmod 644 /etc/seedbox-from-scratch/ssl/cert.pem
+chmod 644 /etc/seedbox-from-scratch/ssl/key.pem
+
+##################### LAST LINE ###########

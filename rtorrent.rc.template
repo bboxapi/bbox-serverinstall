@@ -1,0 +1,68 @@
+#####################################################################
+#
+# The Seedbox From Scratch Script
+#   By Notos ---> https://github.com/Notos/
+#
+#
+######################################################################
+#
+#  Copyright (c) 2013 Notos (https://github.com/Notos/)
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+#  --> Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+#
+######################################################################
+max_downloads_global = 0
+max_uploads_global = 0
+min_peers = 1 
+max_peers = 150 
+min_peers_seed = 1 
+max_peers_seed = 150
+
+max_uploads = 150
+
+download_rate = 0
+upload_rate = 0
+
+directory = /home/<username>/downloads/manual
+
+session = /home/<username>/downloads/.session
+port_range = 99888-99888 
+port_random = yes
+
+# Directories
+schedule = watch_directory,5,5,load_start=/home/<username>/downloads/watch/*.torrent
+schedule = tied_directory,5,5,start_tied=
+schedule = untied_directory,5,5,stop_untied= 
+schedule = low_diskspace,5,10,close_low_diskspace=2000M 
+
+# Networking
+# network.scgi.open_port = localhost:5000
+network.scgi.open_port = 127.0.0.1:5995
+# scgi_port = 127.0.0.1:5000
+network.http.ssl_verify_peer.set=0
+
+use_udp_trackers = yes 
+encryption = allow_incoming,try_outgoing,enable_retry
+network.max_open_files.set = 2500 
+#network.max_open_sockets.set = 1536 
+network.http.max_open.set = 256 
+network.send_buffer.size.set = 1M 
+network.receive_buffer.size.set = 1M
+dht = disable
+peer_exchange = no
+
+check_hash = no
+pieces.preload.type.set = 1
+max_memory_usage = 3500M
+
+system.file_allocate.set = yes
+
+# The following line initialises rutorrent plugins without needing to open the web interface
+execute = {sh,-c,/usr/bin/php /var/www/rutorrent/php/initplugins.php <username> &}
+
